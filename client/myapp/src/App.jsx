@@ -1,7 +1,7 @@
 import './App.css'
-import Home from '../components/pages/home'
+import Home from '../components/pages/Home'
 function App() {
-  
+
   return (
     <>
       <Home></Home>
