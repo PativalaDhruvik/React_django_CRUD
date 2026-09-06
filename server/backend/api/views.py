@@ -19,3 +19,22 @@ def create_books(request):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)  # return created book JSON
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # return validation errors
+
+@api_view(['PUT','DELETE'])
+def update_books(request, pk):
+    try:
+        book = BookStore.objects.get(pk=pk)
+    except BookStore.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)   
+    
+    if request.method == 'DELETE':
+        book.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    elif request.method == 'PUT':
+        serializer = BookStoreSerializer(book, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+

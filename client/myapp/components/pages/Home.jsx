@@ -4,6 +4,7 @@ export default function Home() {
   const [books, setBooks] = useState([]);
   const [title, setTitle] = useState("");
   const [releaseDate, setReleaseDate] = useState("");
+  const [updatedTitles, setUpdatedTitles] = useState({});
 
   // Fetch all books
   const fetchBooks = async () => {
@@ -50,6 +51,62 @@ export default function Home() {
     }
   };
 
+  // Update a book title (PUT request)
+  const updateBook = async (id, currentReleaseDate) => {
+    const newTitle = updatedTitles[id];
+    if (!newTitle || newTitle.trim() === "") return;
+
+    const data = {
+      title: newTitle,
+      release_date: currentReleaseDate,
+    };
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/Books/${id}/`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("Error updating book:", response.status, text);
+        return;
+      }
+
+      const result = await response.json();
+      console.log("Updated book:", result);
+
+      // Clear input for this book and refresh list
+      setUpdatedTitles((prev) => ({ ...prev, [id]: "" }));
+      fetchBooks();
+    } catch (e) {
+      console.error("Error updating book:", e);
+    }
+  };
+
+  // Delete a book (DELETE request)
+  const deleteBook = async (id) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/Books/${id}/`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("Error deleting book:", response.status, text);
+        return;
+      }
+
+      console.log("Deleted book with id:", id);
+
+      // Refresh list after deleting
+      fetchBooks();
+    } catch (e) {
+      console.error("Error deleting book:", e);
+    }
+  };
+
   useEffect(() => {
     fetchBooks();
   }, []);
@@ -84,6 +141,21 @@ export default function Home() {
           <div key={book.id}>
             <p>Title: {book.title}</p>
             <p>Release Date: {book.release_date}</p>
+            <input
+              type="text"
+              placeholder="new title ..."
+              value={updatedTitles[book.id] || ""}
+              onChange={(e) =>
+                setUpdatedTitles((prev) => ({
+                  ...prev,
+                  [book.id]: e.target.value,
+                }))
+              }
+            />
+            <button onClick={() => deleteBook(book.id)}>Delete</button>
+            <button onClick={() => updateBook(book.id, book.release_date)}>
+              Updatename
+            </button>
           </div>
         ))}
       </div>
